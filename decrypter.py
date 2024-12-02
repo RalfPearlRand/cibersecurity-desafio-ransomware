@@ -1,22 +1,35 @@
 import os
-import pyaes
+import hashlib
+from cryptography.fernet import Fernet
 
-## abrir o arquivo criptografado
-file_name = "teste.txt.ransomwaretroll"
-file = open(file_name, "rb")
-file_data = file.read()
-file.close()
+def decrypt_directory():
+    current_dir = os.getcwd()
+    
+    # Gerar chave usando SHA256
+    key = hashlib.sha256(b"testeransomwares").digest()
+    fernet_key = Fernet.generate_key()
+    cipher_suite = Fernet(fernet_key)
+    
+    for filename in os.listdir(current_dir):
+        if filename.endswith('.ransomwaretroll'):
+            try:
+                file_path = os.path.join(current_dir, filename)
+                
+                with open(file_path, "rb") as file:
+                    file_data = file.read()
+                
+                decrypt_data = cipher_suite.decrypt(file_data)
+                
+                os.remove(file_path)
+                
+                original_filename = filename[:-16]
+                new_file_path = os.path.join(current_dir, original_filename)
+                
+                with open(new_file_path, "wb") as new_file:
+                    new_file.write(decrypt_data)
+                
+                print(f"Descriptografado: {filename}")
+            except Exception as e:
+                print(f"Erro ao descriptografar {filename}: {e}")
 
-## chave para descriptografia
-key = b"testeransomwares"
-aes = pyaes.AESModeOfOperationCTR(key)
-decrypt_data = aes.decrypt(file_data)
-
-## remover o arquivo criptografado
-os.remove(file_name)
-
-## criar o arquivo descriptografado
-new_file = "teste.txt"
-new_file = open(f'{new_file}', "wb")
-new_file.write(decrypt_data)
-new_file.close()
+decrypt_directory()
